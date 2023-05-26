@@ -1,58 +1,70 @@
 package ru.job4j.controller;
 
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.domain.Person;
-import ru.job4j.repository.PersonRepository;
+import ru.job4j.service.PersonService;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Oywayten 25.05.2023.
  */
 @RestController
 @RequestMapping("/person")
+@AllArgsConstructor
 public class PersonController {
-    private final PersonRepository persons;
+    private final PersonService personService;
 
-    public PersonController(final PersonRepository persons) {
-        this.persons = persons;
-    }
-
+    /*
+    curl -i http://localhost:8080/person/
+     */
     @GetMapping("/")
     public List<Person> findAll() {
-        return this.persons.findAll();
+        return personService.findAll();
     }
 
+    /*
+    curl -i http://localhost:8080/person/1
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Person> findById(@PathVariable int id) {
-        var person = this.persons.findById(id);
+        Optional<Person> person = personService.findById(id);
         return new ResponseEntity<>(
                 person.orElse(new Person()),
                 person.isPresent() ? HttpStatus.OK : HttpStatus.NOT_FOUND
         );
     }
 
+    /*
+    curl -H "Content-Type:application/json" -X POST -d "{\"login\":\"job4j@gmail.com\",\"password\":\"123\"}" http://localhost:8080/person/
+     */
     @PostMapping("/")
     public ResponseEntity<Person> create(@RequestBody Person person) {
         return new ResponseEntity<>(
-                this.persons.save(person),
+                personService.save(person),
                 HttpStatus.CREATED
         );
     }
 
+    /*
+    curl -i -H "Content-Type: application/json" -X PUT -d "{\"id\":\"11\",\"login\":\"support@job4j.com\",\"password\":\"123\"}" http://localhost:8080/person/
+     */
     @PutMapping("/")
     public ResponseEntity<Void> update(@RequestBody Person person) {
-        this.persons.save(person);
-        return ResponseEntity.ok().build();
+        return personService.update(person) ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build();
     }
 
+    /*
+    curl -i -X DELETE http://localhost:8080/person/5
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable int id) {
         Person person = new Person();
         person.setId(id);
-        this.persons.delete(person);
-        return ResponseEntity.ok().build();
+        return personService.delete(person) ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build();
     }
 }
