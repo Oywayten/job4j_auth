@@ -20,7 +20,7 @@ public class PersonController {
     private final PersonService personService;
 
     /*
-    curl -i http://localhost:8080/person/
+    curl -i http:/localhost:8080/person/
      */
     @GetMapping("/")
     public List<Person> findAll() {
@@ -28,7 +28,7 @@ public class PersonController {
     }
 
     /*
-    curl -i http://localhost:8080/person/1
+    curl -i localhost:8080/person/1
      */
     @GetMapping("/{id}")
     public ResponseEntity<Person> findById(@PathVariable int id) {
@@ -40,7 +40,7 @@ public class PersonController {
     }
 
     /*
-    curl -H "Content-Type:application/json" -X POST -d "{\"login\":\"job4j@gmail.com\",\"password\":\"123\"}" http://localhost:8080/person/
+    curl -H "Content-Type:application/json" -X POST -d "{\"login\":\"job4j@gmail.com\",\"password\":\"123\"}" localhost:8080/person/
      */
     @PostMapping("/")
     public ResponseEntity<Person> create(@RequestBody Person person) {
@@ -51,7 +51,7 @@ public class PersonController {
     }
 
     /*
-    curl -i -H "Content-Type: application/json" -X PUT -d "{\"id\":\"11\",\"login\":\"support@job4j.com\",\"password\":\"123\"}" http://localhost:8080/person/
+    curl -i -H "Content-Type: application/json" -X PUT -d "{\"id\":\"11\",\"login\":\"support@job4j.com\",\"password\":\"123\"}" localhost:8080/person/
      */
     @PutMapping("/")
     public ResponseEntity<Void> update(@RequestBody Person person) {
@@ -59,7 +59,7 @@ public class PersonController {
     }
 
     /*
-    curl -i -X DELETE http://localhost:8080/person/5
+    curl -i -X DELETE localhost:8080/person/5
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable int id) {
