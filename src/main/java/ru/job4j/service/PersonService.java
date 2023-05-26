@@ -46,4 +46,8 @@ public class PersonService {
         }
         return result;
     }
+
+    public Person findByLogin(String username) {
+        return personRepository.findByLogin(username);
+    }
 }

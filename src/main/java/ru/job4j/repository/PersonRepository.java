@@ -12,4 +12,6 @@ import java.util.List;
 public interface PersonRepository extends CrudRepository<Person, Integer> {
     @NonNull
     List<Person> findAll();
+
+    Person findByLogin(String login);
 }
