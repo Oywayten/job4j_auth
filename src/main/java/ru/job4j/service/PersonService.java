@@ -2,8 +2,12 @@ package ru.job4j.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.job4j.domain.Person;
+import ru.job4j.exeption.UserNotFoundException;
 import ru.job4j.repository.PersonRepository;
 
 import java.util.List;
@@ -27,24 +31,30 @@ public class PersonService {
     }
 
     public Person save(Person person) {
-        return personRepository.save(person);
+        try {
+            person = personRepository.save(person);
+        } catch (DataIntegrityViolationException e) {
+            log.error("Error save person", e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not sign-up");
+        }
+        return person;
     }
 
     public boolean update(Person person) {
         Person savedPerson = null;
         if (personRepository.existsById(person.getId())) {
-           savedPerson = personRepository.save(person);
+            savedPerson = personRepository.save(person);
         }
         return person.equals(savedPerson);
     }
 
     public boolean delete(Person person) {
         int id = person.getId();
-        boolean result = personRepository.existsById(id);
-        if (result) {
-            personRepository.delete(person);
+        if (!personRepository.existsById(id)) {
+            throw new UserNotFoundException("User is not found by id = %s".formatted(id));
         }
-        return result;
+        personRepository.delete(person);
+        return true;
     }
 
     public Person findByLogin(String username) {
