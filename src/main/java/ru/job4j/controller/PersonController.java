@@ -29,6 +29,7 @@ import java.util.Optional;
 public class PersonController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PersonController.class.getSimpleName());
+    public static final String USER_NOT_FOUND_BY_ID_S = "User not found by id = %s";
     private final ObjectMapper objectMapper;
 
     private final PersonService personService;
@@ -60,14 +61,38 @@ public class PersonController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Person> findById(@PathVariable int id) {
-        Optional<Person> person = personService.findById(id);
-        if (person.isEmpty()) {
-            throw new UserNotFoundException("User is not found by id = %s".formatted(id));
+        Optional<Person> personOptional = personService.findById(id);
+        if (personOptional.isEmpty()) {
+            throw new UserNotFoundException(USER_NOT_FOUND_BY_ID_S.formatted(id));
         }
         return new ResponseEntity<>(
-                person.orElseThrow(() -> new UserNotFoundException("User is not found by id = %s".formatted(id))),
+                personOptional.orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID_S.formatted(id))),
                 HttpStatus.OK
         );
+    }
+
+    @PatchMapping
+    public ResponseEntity<Person> patch(@RequestBody Map<String, String> body) {
+        String idString = body.get("id");
+        String password = body.get("password");
+        if (idString == null || password == null) {
+            throw new NullPointerException("Id and password mustn't be empty");
+        }
+        if (password.length() < 6) {
+            throw new IllegalArgumentException("Password must by more than 5 chars");
+        }
+        int id = Integer.parseInt(idString);
+        Optional<Person> personOptional = personService.findById(id);
+        if (personOptional.isEmpty()) {
+            throw new UserNotFoundException(USER_NOT_FOUND_BY_ID_S.formatted(id));
+        }
+        Person person = personOptional.get();
+        person.setPassword(encoder.encode(password));
+        boolean isUpdated = personService.update(person);
+        person.setPassword(password);
+        return isUpdated
+                ? ResponseEntity.ok(person)
+                : ResponseEntity.internalServerError().build();
     }
 
     /*
@@ -75,6 +100,7 @@ public class PersonController {
      */
     @PutMapping("/")
     public ResponseEntity<Person> update(@RequestBody Person person) {
+
         String login = person.getLogin();
         String password = person.getPassword();
         loginAndPasswordValidate(login, password);
