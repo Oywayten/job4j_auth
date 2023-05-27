@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>ru.job4j</groupId>
-    <artifactId>persons</artifactId>
+    <artifactId>job4j_auth</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>persons</name>
     <description>Job4j Rest API</description>
