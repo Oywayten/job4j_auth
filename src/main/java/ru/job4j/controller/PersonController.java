@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.util.MultiValueMapAdapter;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.domain.Person;
 import ru.job4j.exeption.UserNotFoundException;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -33,12 +35,24 @@ public class PersonController {
 
     private final BCryptPasswordEncoder encoder;
 
+    private static void loginAndPasswordValidate(String login, String password) {
+        if (password == null || login == null) {
+            throw new NullPointerException("Password and login mustn't be empty");
+        }
+        if (password.length() < 6) {
+            throw new IllegalArgumentException("Password must by more than 5 chars");
+        }
+    }
+
     /*
     curl -i http:/localhost:8080/person/
      */
     @GetMapping("/")
-    public List<Person> findAll() {
-        return personService.findAll();
+    public ResponseEntity<List<Person>> findAll() {
+        List<Person> personList = personService.findAll();
+        return ResponseEntity.status(HttpStatus.OK)
+                .header("Title", "personList")
+                .body(personList);
     }
 
     /*
@@ -67,16 +81,9 @@ public class PersonController {
         person.setPassword(encoder.encode(password));
         boolean isUpdated = personService.update(person);
         person.setPassword(password);
-        return isUpdated ? ResponseEntity.ok(person) : ResponseEntity.internalServerError().build();
-    }
-
-    private static void loginAndPasswordValidate(String login, String password) {
-        if (password == null || login == null) {
-            throw new NullPointerException("Password and login mustn't be empty");
-        }
-        if (password.length() < 6) {
-            throw new IllegalArgumentException("Password must by more than 5 chars");
-        }
+        return isUpdated
+                ? ResponseEntity.ok(person)
+                : ResponseEntity.internalServerError().build();
     }
 
     /*
@@ -86,7 +93,9 @@ public class PersonController {
     public ResponseEntity<Void> delete(@PathVariable int id) {
         Person person = new Person();
         person.setId(id);
-        return personService.delete(person) ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build();
+        return personService.delete(person)
+                ? ResponseEntity.ok().header("Title", "delete").build()
+                : ResponseEntity.internalServerError().build();
     }
 
     /*
@@ -102,6 +111,7 @@ public class PersonController {
         person.setPassword(password);
         return new ResponseEntity<>(
                 person,
+                new MultiValueMapAdapter<>(Map.of("Title", List.of("signUp"))),
                 HttpStatus.CREATED
         );
     }
