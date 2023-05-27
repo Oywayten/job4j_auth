@@ -8,12 +8,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.MultiValueMapAdapter;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.job4j.domain.Operation;
 import ru.job4j.domain.Person;
 import ru.job4j.exeption.UserNotFoundException;
 import ru.job4j.service.PersonService;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -28,22 +31,13 @@ import java.util.Optional;
 @AllArgsConstructor
 public class PersonController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PersonController.class.getSimpleName());
     public static final String USER_NOT_FOUND_BY_ID_S = "User not found by id = %s";
+    private static final Logger LOGGER = LoggerFactory.getLogger(PersonController.class.getSimpleName());
     private final ObjectMapper objectMapper;
 
     private final PersonService personService;
 
     private final BCryptPasswordEncoder encoder;
-
-    private static void loginAndPasswordValidate(String login, String password) {
-        if (password == null || login == null) {
-            throw new NullPointerException("Password and login mustn't be empty");
-        }
-        if (password.length() < 6) {
-            throw new IllegalArgumentException("Password must by more than 5 chars");
-        }
-    }
 
     /*
     curl -i http:/localhost:8080/person/
@@ -72,21 +66,14 @@ public class PersonController {
     }
 
     @PatchMapping
-    public ResponseEntity<Person> patch(@RequestBody Map<String, String> body) {
-        String idString = body.get("id");
-        String password = body.get("password");
-        if (idString == null || password == null) {
-            throw new NullPointerException("Id and password mustn't be empty");
-        }
-        if (password.length() < 6) {
-            throw new IllegalArgumentException("Password must by more than 5 chars");
-        }
-        int id = Integer.parseInt(idString);
+    public ResponseEntity<Person> patch(@Valid @RequestBody Person person) {
+        String password = person.getPassword();
+        int id = person.getId();
         Optional<Person> personOptional = personService.findById(id);
         if (personOptional.isEmpty()) {
             throw new UserNotFoundException(USER_NOT_FOUND_BY_ID_S.formatted(id));
         }
-        Person person = personOptional.get();
+        person = personOptional.get();
         person.setPassword(encoder.encode(password));
         boolean isUpdated = personService.update(person);
         person.setPassword(password);
@@ -99,11 +86,9 @@ public class PersonController {
     curl -i -H "Content-Type: application/json" -X PUT -d "{\"id\":\"11\",\"login\":\"support@job4j.com\",\"password\":\"123\"}" localhost:8080/person/
      */
     @PutMapping("/")
-    public ResponseEntity<Person> update(@RequestBody Person person) {
-
-        String login = person.getLogin();
+    @Validated(Operation.OnLogin.class)
+    public ResponseEntity<Person> update(@Valid @RequestBody Person person) {
         String password = person.getPassword();
-        loginAndPasswordValidate(login, password);
         person.setPassword(encoder.encode(password));
         boolean isUpdated = personService.update(person);
         person.setPassword(password);
@@ -128,10 +113,9 @@ public class PersonController {
     curl -H "Content-Type: application/json" -X POST -d {"""login""":"""admin""","""password""":"""password"""} "localhost:8080/person/sign-up"
      */
     @PostMapping("/sign-up")
-    public ResponseEntity<Person> signUp(@RequestBody Person person) {
-        String login = person.getLogin();
+    @Validated(Operation.OnLogin.class)
+    public ResponseEntity<Person> signUp(@Valid @RequestBody Person person) {
         String password = person.getPassword();
-        loginAndPasswordValidate(login, password);
         person.setPassword(encoder.encode(password));
         person = personService.save(person);
         person.setPassword(password);
