@@ -43,17 +43,6 @@ public class PersonController {
     }
 
     /*
-    curl -H "Content-Type:application/json" -X POST -d "{\"login\":\"job4j@gmail.com\",\"password\":\"123\"}" localhost:8080/person/
-     */
-    @PostMapping("/")
-    public ResponseEntity<Person> create(@RequestBody Person person) {
-        return new ResponseEntity<>(
-                personService.save(person),
-                HttpStatus.CREATED
-        );
-    }
-
-    /*
     curl -i -H "Content-Type: application/json" -X PUT -d "{\"id\":\"11\",\"login\":\"support@job4j.com\",\"password\":\"123\"}" localhost:8080/person/
      */
     @PutMapping("/")
@@ -71,9 +60,18 @@ public class PersonController {
         return personService.delete(person) ? ResponseEntity.ok().build() : ResponseEntity.internalServerError().build();
     }
 
+    /*
+    curl -H "Content-Type: application/json" -X POST -d {"""login""":"""admin""","""password""":"""password"""} "localhost:8080/person/sign-up"
+     */
     @PostMapping("/sign-up")
-    public void signUp(@RequestBody Person person) {
-        person.setPassword(encoder.encode(person.getPassword()));
-        personService.save(person);
+    public ResponseEntity<Person> signUp(@RequestBody Person person) {
+        String password = person.getPassword();
+        person.setPassword(encoder.encode(password));
+        Person savedPerson = personService.save(person);
+        savedPerson.setPassword(password);
+        return new ResponseEntity<>(
+                savedPerson,
+                HttpStatus.CREATED
+        );
     }
 }
