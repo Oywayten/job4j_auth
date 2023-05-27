@@ -13,6 +13,10 @@ import javax.sql.DataSource;
 @SpringBootApplication
 public class PersonsApplication extends SpringBootServletInitializer {
 
+    public static void main(String[] args) {
+        SpringApplication.run(PersonsApplication.class, args);
+    }
+
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(PersonsApplication.class);
@@ -21,13 +25,9 @@ public class PersonsApplication extends SpringBootServletInitializer {
     @Bean
     public SpringLiquibase liquibase(DataSource ds) {
         SpringLiquibase liquibase = new SpringLiquibase();
-        liquibase.setChangeLog("classpath:db/dbchangelog.xml");
+        liquibase.setChangeLog("classpath:liquibase-changeLog.xml");
         liquibase.setDataSource(ds);
         return liquibase;
-    }
-
-    public static void main(String[] args) {
-        SpringApplication.run(PersonsApplication.class, args);
     }
 
     @Bean
