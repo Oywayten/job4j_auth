@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.job4j.domain.Person;
-import ru.job4j.exeption.UserNotFoundException;
+import ru.job4j.exeption.PersonNotFoundException;
 import ru.job4j.repository.PersonRepository;
 
 import java.util.List;
@@ -51,7 +51,7 @@ public class PersonService {
     public boolean delete(Person person) {
         int id = person.getId();
         if (!personRepository.existsById(id)) {
-            throw new UserNotFoundException("User is not found by id = %s".formatted(id));
+            throw new PersonNotFoundException("Person is not found by id = %s".formatted(id));
         }
         personRepository.delete(person);
         return true;

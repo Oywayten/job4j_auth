@@ -5,5 +5,5 @@ package ru.job4j.domain;
  */
 public class Operation {
     public interface OnLogin { }
-    public interface IsUser { }
+    public interface IsPerson { }
 }

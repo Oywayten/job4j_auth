@@ -24,7 +24,7 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     @NotNull(message = "Id must be non null")
-    @Positive(message = "Id must be greater than 0", groups = {Operation.IsUser.class})
+    @Positive(message = "Id must be greater than 0", groups = {Operation.IsPerson.class})
     private Integer id;
 
     @NotBlank(message = "login must be not empty", groups = {Operation.OnLogin.class})

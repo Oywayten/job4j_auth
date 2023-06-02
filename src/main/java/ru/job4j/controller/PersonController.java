@@ -15,7 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.job4j.domain.Operation;
 import ru.job4j.domain.Person;
-import ru.job4j.exeption.UserNotFoundException;
+import ru.job4j.exeption.PersonNotFoundException;
 import ru.job4j.service.PersonService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -32,10 +32,10 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/person")
 @AllArgsConstructor
-@Tag(name="Название контроллера", description="Описание контролера")
+@Tag(name="Person", description="Operations about person")
 public class PersonController {
 
-    public static final String USER_NOT_FOUND_BY_ID_S = "User not found by id = %s";
+    public static final String PERSON_NOT_FOUND_BY_ID_S = "Person not found by id = %s";
     private static final Logger LOGGER = LoggerFactory.getLogger(PersonController.class.getSimpleName());
     private final ObjectMapper objectMapper;
 
@@ -49,8 +49,8 @@ public class PersonController {
     @GetMapping("/")
     @SecurityRequirement(name = "JWT")
     @io.swagger.v3.oas.annotations.Operation(
-            summary = "Search all users",
-            description = "Allows you to find all users"
+            summary = "Search all persons",
+            description = "Allows you to find all persons"
     )
     public ResponseEntity<List<Person>> findAll() {
         List<Person> personList = personService.findAll();
@@ -66,16 +66,16 @@ public class PersonController {
     @GetMapping("/{id}")
     @SecurityRequirement(name = "JWT")
     @io.swagger.v3.oas.annotations.Operation(
-            summary = "User search",
-            description = "Allows you to find a user by ID"
+            summary = "Person search",
+            description = "Allows you to find a person by ID"
     )
     public ResponseEntity<Person> findById(@PathVariable int id) {
         Optional<Person> personOptional = personService.findById(id);
         if (personOptional.isEmpty()) {
-            throw new UserNotFoundException(USER_NOT_FOUND_BY_ID_S.formatted(id));
+            throw new PersonNotFoundException(PERSON_NOT_FOUND_BY_ID_S.formatted(id));
         }
         return new ResponseEntity<>(
-                personOptional.orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID_S.formatted(id))),
+                personOptional.orElseThrow(() -> new PersonNotFoundException(PERSON_NOT_FOUND_BY_ID_S.formatted(id))),
                 HttpStatus.OK
         );
     }
@@ -84,15 +84,15 @@ public class PersonController {
     @SecurityRequirement(name = "JWT")
     @io.swagger.v3.oas.annotations.Operation(
             summary = "Change password",
-            description = "Allows you to change the user's password"
+            description = "Allows you to change the person's password"
     )
-    @Validated(Operation.IsUser.class)
+    @Validated(Operation.IsPerson.class)
     public ResponseEntity<Person> patch(@Valid @RequestBody Person person) {
         String password = person.getPassword();
         int id = person.getId();
         Optional<Person> personOptional = personService.findById(id);
         if (personOptional.isEmpty()) {
-            throw new UserNotFoundException(USER_NOT_FOUND_BY_ID_S.formatted(id));
+            throw new PersonNotFoundException(PERSON_NOT_FOUND_BY_ID_S.formatted(id));
         }
         person = personOptional.get();
         person.setPassword(encoder.encode(password));
@@ -109,10 +109,10 @@ public class PersonController {
     @PutMapping("/")
     @SecurityRequirement(name = "JWT")
     @io.swagger.v3.oas.annotations.Operation(
-            summary = "User update",
-            description = "Allows you to update user"
+            summary = "Person update",
+            description = "Allows you to update person"
     )
-    @Validated({Operation.OnLogin.class, Operation.IsUser.class})
+    @Validated({Operation.OnLogin.class, Operation.IsPerson.class})
 
     public ResponseEntity<Person> update(@Valid @RequestBody Person person) {
         String password = person.getPassword();
@@ -130,8 +130,8 @@ public class PersonController {
     @DeleteMapping("/{id}")
     @SecurityRequirement(name = "JWT")
     @io.swagger.v3.oas.annotations.Operation(
-            summary = "User delete",
-            description = "Allows you to delete user"
+            summary = "Person delete",
+            description = "Allows you to delete person"
     )
     public ResponseEntity<Void> delete(@PathVariable int id) {
         Person person = new Person();
@@ -146,8 +146,8 @@ public class PersonController {
      */
     @PostMapping("/sign-up")
     @io.swagger.v3.oas.annotations.Operation(
-            summary = "User registration",
-            description = "Allows you to register a user"
+            summary = "Person registration",
+            description = "Allows you to register a person"
     )
     @Validated(Operation.OnLogin.class)
     public ResponseEntity<Person> signUp(@Valid @RequestBody @Parameter(description = "Person") Person person) {
@@ -162,7 +162,7 @@ public class PersonController {
         );
     }
 
-    @ExceptionHandler(value = {UserNotFoundException.class})
+    @ExceptionHandler(value = {PersonNotFoundException.class})
     public void exceptionHandler(Exception e, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.NOT_FOUND.value());
         response.setContentType("application/json");
