@@ -12,7 +12,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import static ru.job4j.security.JWTAuthenticationFilter.SIGN_UP_URL;
+import static ru.job4j.security.JWTAuthenticationFilter.*;
 
 /**
  * Oywayten 26.05.2023.
@@ -31,6 +31,8 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().authorizeRequests()
                 .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
+                .antMatchers(HttpMethod.GET, V_3).permitAll()
+                .antMatchers(HttpMethod.GET, SWAGGER_UI).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(new JWTAuthenticationFilter(authenticationManager()))

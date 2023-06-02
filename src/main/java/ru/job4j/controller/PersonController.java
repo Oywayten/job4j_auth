@@ -1,6 +1,9 @@
 package ru.job4j.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/person")
 @AllArgsConstructor
+@Tag(name="Название контроллера", description="Описание контролера")
 public class PersonController {
 
     public static final String USER_NOT_FOUND_BY_ID_S = "User not found by id = %s";
@@ -43,6 +47,11 @@ public class PersonController {
     curl -i http:/localhost:8080/person/
      */
     @GetMapping("/")
+    @SecurityRequirement(name = "JWT")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "Search all users",
+            description = "Allows you to find all users"
+    )
     public ResponseEntity<List<Person>> findAll() {
         List<Person> personList = personService.findAll();
         return ResponseEntity.status(HttpStatus.OK)
@@ -53,7 +62,13 @@ public class PersonController {
     /*
     curl -i localhost:8080/person/1
      */
+
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "JWT")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "User search",
+            description = "Allows you to find a user by ID"
+    )
     public ResponseEntity<Person> findById(@PathVariable int id) {
         Optional<Person> personOptional = personService.findById(id);
         if (personOptional.isEmpty()) {
@@ -66,6 +81,12 @@ public class PersonController {
     }
 
     @PatchMapping
+    @SecurityRequirement(name = "JWT")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "Change password",
+            description = "Allows you to change the user's password"
+    )
+    @Validated(Operation.IsUser.class)
     public ResponseEntity<Person> patch(@Valid @RequestBody Person person) {
         String password = person.getPassword();
         int id = person.getId();
@@ -86,7 +107,13 @@ public class PersonController {
     curl -i -H "Content-Type: application/json" -X PUT -d "{\"id\":\"11\",\"login\":\"support@job4j.com\",\"password\":\"123\"}" localhost:8080/person/
      */
     @PutMapping("/")
-    @Validated(Operation.OnLogin.class)
+    @SecurityRequirement(name = "JWT")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "User update",
+            description = "Allows you to update user"
+    )
+    @Validated({Operation.OnLogin.class, Operation.IsUser.class})
+
     public ResponseEntity<Person> update(@Valid @RequestBody Person person) {
         String password = person.getPassword();
         person.setPassword(encoder.encode(password));
@@ -101,6 +128,11 @@ public class PersonController {
     curl -i -X DELETE localhost:8080/person/5
      */
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "JWT")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "User delete",
+            description = "Allows you to delete user"
+    )
     public ResponseEntity<Void> delete(@PathVariable int id) {
         Person person = new Person();
         person.setId(id);
@@ -113,8 +145,12 @@ public class PersonController {
     curl -H "Content-Type: application/json" -X POST -d {"""login""":"""admin""","""password""":"""password"""} "localhost:8080/person/sign-up"
      */
     @PostMapping("/sign-up")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "User registration",
+            description = "Allows you to register a user"
+    )
     @Validated(Operation.OnLogin.class)
-    public ResponseEntity<Person> signUp(@Valid @RequestBody Person person) {
+    public ResponseEntity<Person> signUp(@Valid @RequestBody @Parameter(description = "Person") Person person) {
         String password = person.getPassword();
         person.setPassword(encoder.encode(password));
         person = personService.save(person);

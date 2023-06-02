@@ -24,11 +24,11 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     @NotNull(message = "Id must be non null")
-    @Positive(message = "Id must be greater than 0")
+    @Positive(message = "Id must be greater than 0", groups = {Operation.IsUser.class})
     private Integer id;
 
     @NotBlank(message = "login must be not empty", groups = {Operation.OnLogin.class})
-    @Length(min = 6, max = 256, message = "login must be min = 6, max = 256")
+    @Length(min = 3, max = 256, message = "login must be min = 6, max = 256")
     private String login;
 
     @NotBlank(message = "password must be not empty")

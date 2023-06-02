@@ -29,6 +29,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String HEADER_STRING = "Authorization";
     public static final String SIGN_UP_URL = "/person/sign-up";
+    public static final String V_3 = "/v3/**";
+    public static final String SWAGGER_UI = "/swagger-ui*/**";
 
     private final AuthenticationManager auth;
 
